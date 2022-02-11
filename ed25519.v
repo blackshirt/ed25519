@@ -26,15 +26,15 @@ pub type PrivateKey = []byte
 // seed returns the private key seed corresponding to priv. RFC 8032's private keys correspond to seeds
 // in this module.
 pub fn (priv PrivateKey) seed() []byte {
-	mut seed := []byte{len: ed25519.seed_size}
+	mut seed := []byte{len: seed_size}
 	copy(seed, priv[..32])
 	return seed
 }
 
 // `public_key` returns the []byte corresponding to priv.
 pub fn (priv PrivateKey) public_key() []byte {
-	assert priv.len == ed25519.private_key_size
-	mut publickey := []byte{len: ed25519.public_key_size}
+	assert priv.len == private_key_size
+	mut publickey := []byte{len: public_key_size}
 	copy(publickey, priv[32..])
 	return PublicKey(publickey)
 }
@@ -56,16 +56,16 @@ pub fn (priv PrivateKey) sign(message []byte) ?[]byte {
 
 // `sign `signs the message with privatekey and returns a signature
 pub fn sign(privatekey PrivateKey, message []byte) ?[]byte {
-	mut signature := []byte{len: ed25519.signature_size}
+	mut signature := []byte{len: signature_size}
 	sign_generic(signature, privatekey, message) ?
 	return signature
 }
 
 fn sign_generic(signature []byte, privatekey []byte, message []byte) ? {
-	if privatekey.len != ed25519.private_key_size {
+	if privatekey.len != private_key_size {
 		panic('ed25519: bad private key length: $privatekey.len')
 	}
-	seed, publickey := privatekey[..ed25519.seed_size], privatekey[ed25519.seed_size..]
+	seed, publickey := privatekey[..seed_size], privatekey[seed_size..]
 
 	mut h := sha512.sum512(seed)
 	mut s := edwards25519.new_scalar()
@@ -104,11 +104,11 @@ fn sign_generic(signature []byte, privatekey []byte, message []byte) ? {
 
 // `verify` reports whether sig is a valid signature of message by publickey.
 pub fn verify(publickey PublicKey, message []byte, sig []byte) ?bool {
-	if publickey.len != ed25519.public_key_size {
+	if publickey.len != public_key_size {
 		return error('ed25519: bad public key length: $publickey.len')
 	}
 
-	if sig.len != ed25519.signature_size || sig[63] & 224 != 0 {
+	if sig.len != signature_size || sig[63] & 224 != 0 {
 		return false
 	}
 
@@ -138,12 +138,12 @@ pub fn verify(publickey PublicKey, message []byte, sig []byte) ?bool {
 	return hmac.equal(sig[..32], rr.bytes())
 }
 
-// `generate_key` generates a public/private key pair entropy using `crypto/rand`.
+// `generate_key` generates a public/private key pair entropy using `crypto.rand`.
 pub fn generate_key() ?(PublicKey, PrivateKey) {
-	mut seed := rand.read(ed25519.seed_size) ?
+	mut seed := rand.read(seed_size) ?
 
 	privatekey := new_key_from_seed(seed)
-	publickey := []byte{len: ed25519.public_key_size}
+	publickey := []byte{len: public_key_size}
 	copy(publickey, privatekey[32..])
 
 	return publickey, privatekey
@@ -153,13 +153,13 @@ pub fn generate_key() ?(PublicKey, PrivateKey) {
 // correspond to seeds in this module
 pub fn new_key_from_seed(seed []byte) PrivateKey {
 	// Outline the function body so that the returned key can be stack-allocated.
-	privatekey := []byte{len: ed25519.private_key_size}
+	privatekey := []byte{len: private_key_size}
 	new_key_from_seed_generic(privatekey, seed)
 	return PrivateKey(privatekey)
 }
 
 fn new_key_from_seed_generic(privatekey []byte, seed []byte) {
-	if seed.len != ed25519.seed_size {
+	if seed.len != seed_size {
 		panic('ed25519: bad seed length: $seed.len')
 	}
 
