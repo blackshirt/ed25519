@@ -79,14 +79,14 @@ fn is_on_curve(x Element, y Element, z Element, t Element) bool {
 	return lhs.equal(rhs) == 1
 }
 
-// bytes_montgomery converts v to a point on the birationally-equivalent
+// `bytes_montgomery` converts v to a point on the birationally-equivalent
 // Curve25519 Montgomery curve, and returns its canonical 32 bytes encoding
 // according to RFC 7748.
 //
 // Note that bytes_montgomery only encodes the u-coordinate, so v and -v encode
 // to the same value. If v is the identity point, bytes_montgomery returns 32
 // zero bytes, analogously to the X25519 function.
-fn (mut v Point) bytes_montgomery() []byte {
+pub fn (mut v Point) bytes_montgomery() []byte {
 	// This function is outlined to make the allocations inline in the caller
 	// rather than happen on the heap.
 	mut buf := [32]byte{}
@@ -114,19 +114,8 @@ fn (mut v Point) bytes_montgomery_generic(mut buf [32]byte) []byte {
 	return copy_field_element(mut buf, mut u)
 }
 
-// mult_by_cofactor sets v = 8 * p, and returns v.
-fn (mut v Point) mult_by_cofactor(p Point) Point {
-	/*
-	checkInitialized(p)
-	result := projP1xP1{}
-	pp := (&projP2{}).FromP3(p)
-	result.Double(pp)
-	pp.FromP1xP1(&result)
-	result.Double(pp)
-	pp.FromP1xP1(&result)
-	result.Double(pp)
-	return v.fromP1xP1(&result)
-	*/
+// `mult_by_cofactor` sets v = 8 * p, and returns v.
+pub fn (mut v Point) mult_by_cofactor(p Point) Point {
 	check_initialized(p)
 	mut result := ProjectiveP1{}
 	mut pp := ProjectiveP2{}
@@ -139,10 +128,10 @@ fn (mut v Point) mult_by_cofactor(p Point) Point {
 	return v.from_p1(result)
 }
 
-// invert sets s to the inverse of a nonzero scalar v, and returns s.
+// `invert` sets s to the inverse of a nonzero scalar v, and returns s.
 //
 // If t is zero, invert returns zero.
-fn (mut s Scalar) invert(t Scalar) Scalar {
+pub fn (mut s Scalar) invert(t Scalar) Scalar {
 	// Uses a hardcoded sliding window of width 4.
 	mut table := [8]Scalar{}
 	mut tt := Scalar{}
@@ -245,10 +234,10 @@ fn (mut s Scalar) invert(t Scalar) Scalar {
 	return s
 }
 
-// multi_scalar_mult sets v = sum(scalars[i] * points[i]), and returns v.
+// `multi_scalar_mult` sets v = sum(scalars[i] * points[i]), and returns v.
 //
 // Execution time depends only on the lengths of the two slices, which must match.
-fn (mut v Point) multi_scalar_mult(scalars []Scalar, points []Point) Point {
+pub fn (mut v Point) multi_scalar_mult(scalars []Scalar, points []Point) Point {
 	if scalars.len != points.len {
 		panic('edwards25519: called multi_scalar_mult with different size inputs')
 	}
@@ -302,10 +291,10 @@ fn (mut v Point) multi_scalar_mult(scalars []Scalar, points []Point) Point {
 	return v
 }
 
-// VarTimeMultiScalarMult sets v = sum(scalars[i] * points[i]), and returns v.
+// `vartime_multiscalar_mult` sets v = sum(scalars[i] * points[i]), and returns v.
 //
 // Execution time depends on the inputs.
-fn (mut v Point) vartime_multiscalar_mult(scalars []Scalar, points []Point) Point {
+pub fn (mut v Point) vartime_multiscalar_mult(scalars []Scalar, points []Point) Point {
 	if scalars.len != points.len {
 		panic('edwards25519: called VarTimeMultiScalarMult with different size inputs')
 	}

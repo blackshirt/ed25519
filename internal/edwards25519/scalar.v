@@ -39,53 +39,54 @@ const (
 	}
 )
 
+// `new_scalar` return new zero scalar
 pub fn new_scalar() Scalar {
 	return Scalar{}
 }
 
-// add sets s = x + y mod l, and returns s.
-fn (mut s Scalar) add(x Scalar, y Scalar) Scalar {
+// `add` sets s = x + y mod l, and returns s.
+pub fn (mut s Scalar) add(x Scalar, y Scalar) Scalar {
 	// s = 1 * x + y mod l
 	sc_mul_add(mut s.s, edwards25519.sc_one.s, x.s, y.s)
 	return s
 }
 
-// multiply_add sets s = x * y + z mod l, and returns s.
+// `multiply_add` sets s = x * y + z mod l, and returns s.
 pub fn (mut s Scalar) multiply_add(x Scalar, y Scalar, z Scalar) Scalar {
 	sc_mul_add(mut s.s, x.s, y.s, z.s)
 	return s
 }
 
-// Subtract sets s = x - y mod l, and returns s.
-fn (mut s Scalar) subtract(x Scalar, y Scalar) Scalar {
+// `subtract` sets s = x - y mod l, and returns s.
+pub fn (mut s Scalar) subtract(x Scalar, y Scalar) Scalar {
 	// s = -1 * y + x mod l
 	sc_mul_add(mut s.s, edwards25519.sc_minus_one.s, y.s, x.s)
 	return s
 }
 
-// negate sets s = -x mod l, and returns s.
-fn (mut s Scalar) negate(x Scalar) Scalar {
+// `negate` sets s = -x mod l, and returns s.
+pub fn (mut s Scalar) negate(x Scalar) Scalar {
 	// s = -1 * x + 0 mod l
 	sc_mul_add(mut s.s, edwards25519.sc_minus_one.s, x.s, edwards25519.sc_zero.s)
 	return s
 }
 
-// multiply sets s = x * y mod l, and returns s.
-fn (mut s Scalar) multiply(x Scalar, y Scalar) Scalar {
+// `multiply` sets s = x * y mod l, and returns s.
+pub fn (mut s Scalar) multiply(x Scalar, y Scalar) Scalar {
 	// s = x * y + 0 mod l
 	sc_mul_add(mut s.s, x.s, y.s, edwards25519.sc_zero.s)
 	return s
 }
 
-// set sets s = x, and returns s.
-fn (mut s Scalar) set(x Scalar) Scalar {
+// `set` sets s = x, and returns s.
+pub fn (mut s Scalar) set(x Scalar) Scalar {
 	s = x
 	return s
 }
 
-// set_uniform_bytes sets s to an uniformly distributed value given 64 uniformly
+// `set_uniform_bytes` sets s to an uniformly distributed value given 64 uniformly
 // distributed random bytes. If x is not of the right length, set_uniform_bytes
-// returns nil and an error, and the receiver is unchanged.
+// returns an error, and the receiver is unchanged.
 pub fn (mut s Scalar) set_uniform_bytes(x []byte) ?Scalar {
 	if x.len != 64 {
 		return error('edwards25519: invalid set_uniform_bytes input length')
@@ -99,9 +100,9 @@ pub fn (mut s Scalar) set_uniform_bytes(x []byte) ?Scalar {
 	return s
 }
 
-// set_canonical_bytes sets s = x, where x is a 32-byte little-endian encoding of
+// `set_canonical_bytes` sets s = x, where x is a 32-byte little-endian encoding of
 // s, and returns s. If x is not a canonical encoding of s, set_canonical_bytes
-// returns nil and an error, and the receiver is unchanged.
+// returns an error, and the receiver is unchanged.
 pub fn (mut s Scalar) set_canonical_bytes(x []byte) ?Scalar {
 	if x.len != 32 {
 		return error('invalid scalar length')
@@ -120,7 +121,7 @@ pub fn (mut s Scalar) set_canonical_bytes(x []byte) ?Scalar {
 	return s
 }
 
-// is_reduced returns whether the given scalar is reduced modulo l.
+// `is_reduced` returns whether the given scalar is reduced modulo l.
 fn is_reduced(s Scalar) bool {
 	for i := s.s.len - 1; i >= 0; i-- {
 		if s.s[i] > edwards25519.sc_minus_one.s[i] {
@@ -140,10 +141,10 @@ fn is_reduced(s Scalar) bool {
 	return true
 }
 
-// set_bytes_with_clamping applies the buffer pruning described in RFC 8032,
+// `set_bytes_with_clamping` applies the buffer pruning described in RFC 8032,
 // Section 5.1.5 (also known as clamping) and sets s to the result. The input
 // must be 32 bytes, and it is not modified. If x is not of the right length,
-// set_bytes_with_clamping returns nil and an error, and the receiver is unchanged.
+// `set_bytes_with_clamping` returns an error, and the receiver is unchanged.
 //
 // Note that since Scalar values are always reduced modulo the prime order of
 // the curve, the resulting value will not preserve any of the cofactor-clearing
@@ -159,15 +160,7 @@ pub fn (mut s Scalar) set_bytes_with_clamping(x []byte) ?Scalar {
 	if x.len != 32 {
 		return error('edwards25519: invalid set_bytes_with_clamping input length')
 	}
-	/*
-	var wideBytes [64]byte
-	copy(wideBytes[:], x[:])
-	wideBytes[0] &= 248
-	wideBytes[31] &= 63
-	wideBytes[31] |= 64
-	scReduce(&s.s, &wideBytes)
-	return s, nil
-	*/
+	
 	mut wide_bytes := []byte{len: 64, cap: 64}
 	copy(wide_bytes, x)
 	// for i, item in x {
@@ -180,15 +173,15 @@ pub fn (mut s Scalar) set_bytes_with_clamping(x []byte) ?Scalar {
 	return s
 }
 
-// bytes returns the canonical 32-byte little-endian encoding of s.
-fn (mut s Scalar) bytes() []byte {
+// `bytes` returns the canonical 32-byte little-endian encoding of s.
+pub fn (mut s Scalar) bytes() []byte {
 	mut buf := []byte{len: 32}
 	copy(buf, s.s[..])
 	return buf
 }
 
-// equal returns 1 if s and t are equal, and 0 otherwise.
-fn (s Scalar) equal(t Scalar) int {
+// `equal` returns 1 if s and t are equal, and 0 otherwise.
+pub fn (s Scalar) equal(t Scalar) int {
 	return subtle.constant_time_compare(s.s[..], t.s[..])
 }
 
@@ -201,20 +194,6 @@ fn load3(inp []byte) i64 {
 	return r
 }
 
-// u64 version of load3
-/*
-fn load3_u64(inp []byte) u64 {
-	mut r := u64(inp[0])
-	r |= u64(inp[1]) << 8
-	// unsafe {
-	//	r |= i64(inp[1]) * 256
-	//}
-	r |= u64(inp[2]) << 16
-	// r |= i64(inp[2]) * 65536
-	return r
-}
-*/
-
 fn load4(inp []byte) i64 {
 	mut r := i64(inp[0])
 	r |= i64(inp[1]) * 256
@@ -223,20 +202,6 @@ fn load4(inp []byte) i64 {
 	return r
 }
 
-// u64 version of load4
-/*
-fn load4_u64(inp []byte) u64 {
-	mut r := u64(inp[0])
-	// r |= u64(inp[1]) << 8
-	r |= u64(inp[1]) * 256
-	// r |= i64(inp[2]) << 16
-	r |= u64(inp[2]) * 65536
-	// r |= i64(inp[3]) << 24
-	r |= u64(inp[3]) * 16777216
-
-	return r
-}
-*/
 // Input:
 //   a[0]+256*a[1]+...+256^31*a[31] = a
 //   b[0]+256*b[1]+...+256^31*b[31] = b
