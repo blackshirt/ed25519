@@ -118,7 +118,7 @@ fn (mut v ProjectiveP2) zero() ProjectiveP2 {
 // Note that set_bytes accepts all non-canonical encodings of valid points.
 // That is, it follows decoding rules that match most implementations in
 // the ecosystem rather than RFC 8032.
-fn (mut v Point) set_bytes(x []byte) ?Point {
+pub fn (mut v Point) set_bytes(x []byte) ?Point {
 	// Specifically, the non-canonical encodings that are accepted are
 	//   1) the ones where the edwards25519 element is not reduced (see the
 	//      (*edwards25519.Element).set_bytes docs) and
@@ -202,7 +202,7 @@ fn (mut v AffineCached) zero() AffineCached {
 
 // Bytes returns the canonical 32-byte encoding of v, according to RFC 8032,
 // Section 5.1.2.
-fn (mut v Point) bytes() []byte {
+pub fn (mut v Point) bytes() []byte {
 	// This function is outlined to make the allocations inline in the caller
 	// rather than happen on the heap.
 	mut buf := [32]byte{}
@@ -445,7 +445,7 @@ fn (mut v ProjectiveP1) double(p ProjectiveP2) ProjectiveP1 {
 // Negation.
 
 // Negate sets v = -p, and returns v.
-fn (mut v Point) negate(p Point) Point {
+pub fn (mut v Point) negate(p Point) Point {
 	check_initialized(p)
 	v.x.negate(p.x)
 	v.y.set(p.y)

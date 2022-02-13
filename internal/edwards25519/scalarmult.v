@@ -43,7 +43,7 @@ fn basepoint_table() []AffineLookupTable {
 // returns v.
 //
 // The scalar multiplication is done in constant time.
-fn (mut v Point) scalar_base_mult(mut x Scalar) Point {
+pub fn (mut v Point) scalar_base_mult(mut x Scalar) Point {
 	mut bpt_table := basepoint_table()
 
 	// Write x = sum(x_i * 16^i) so  x*B = sum( B*x_i*16^i )

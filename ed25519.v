@@ -149,7 +149,7 @@ pub fn generate_key() ?(PublicKey, PrivateKey) {
 	return publickey, privatekey
 }
 
-// `new_key_from_seed` calculates a private key from a seed. private keys of rfc8032
+// `new_key_from_seed` calculates a private key from a seed. private keys of RFC8032
 // correspond to seeds in this module
 pub fn new_key_from_seed(seed []byte) PrivateKey {
 	// Outline the function body so that the returned key can be stack-allocated.

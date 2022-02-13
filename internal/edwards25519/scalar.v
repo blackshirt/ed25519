@@ -51,7 +51,7 @@ fn (mut s Scalar) add(x Scalar, y Scalar) Scalar {
 }
 
 // multiply_add sets s = x * y + z mod l, and returns s.
-fn (mut s Scalar) multiply_add(x Scalar, y Scalar, z Scalar) Scalar {
+pub fn (mut s Scalar) multiply_add(x Scalar, y Scalar, z Scalar) Scalar {
 	sc_mul_add(mut s.s, x.s, y.s, z.s)
 	return s
 }
@@ -86,7 +86,7 @@ fn (mut s Scalar) set(x Scalar) Scalar {
 // set_uniform_bytes sets s to an uniformly distributed value given 64 uniformly
 // distributed random bytes. If x is not of the right length, set_uniform_bytes
 // returns nil and an error, and the receiver is unchanged.
-fn (mut s Scalar) set_uniform_bytes(x []byte) ?Scalar {
+pub fn (mut s Scalar) set_uniform_bytes(x []byte) ?Scalar {
 	if x.len != 64 {
 		return error('edwards25519: invalid set_uniform_bytes input length')
 	}
@@ -102,7 +102,7 @@ fn (mut s Scalar) set_uniform_bytes(x []byte) ?Scalar {
 // set_canonical_bytes sets s = x, where x is a 32-byte little-endian encoding of
 // s, and returns s. If x is not a canonical encoding of s, set_canonical_bytes
 // returns nil and an error, and the receiver is unchanged.
-fn (mut s Scalar) set_canonical_bytes(x []byte) ?Scalar {
+pub fn (mut s Scalar) set_canonical_bytes(x []byte) ?Scalar {
 	if x.len != 32 {
 		return error('invalid scalar length')
 	}
@@ -151,7 +151,7 @@ fn is_reduced(s Scalar) bool {
 // expected as long as it is applied to points on the prime order subgroup, like
 // in Ed25519. In fact, it is lost to history why RFC 8032 adopted the
 // irrelevant RFC 7748 clamping, but it is now required for compatibility.
-fn (mut s Scalar) set_bytes_with_clamping(x []byte) ?Scalar {
+pub fn (mut s Scalar) set_bytes_with_clamping(x []byte) ?Scalar {
 	// The description above omits the purpose of the high bits of the clamping
 	// for brevity, but those are also lost to reductions, and are also
 	// irrelevant to edwards25519 as they protect against a specific

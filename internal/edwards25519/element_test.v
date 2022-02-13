@@ -346,24 +346,7 @@ fn test_bytes_big_equivalence() ? {
 	el := Element{}
 	mut fe := el.generate_element()
 	mut fe1 := el.generate_element()
-	/*
-	f1 := func(in [32]byte, fe, fe1 Element) bool {
-		fe.SetBytes(in[:])
-
-		in[len(in)-1] &= (1 << 7) - 1 // mask the most significant bit
-		b := new(big.Int).SetBytes(swapEndianness(in[:]))
-		fe1.fromBig(b)
-
-		if fe != fe1 {
-			return false
-		}
-
-		buf := make([]byte, 32) // pad with zeroes
-		copy(buf, swapEndianness(fe1.toBig().Bytes()))
-
-		return bytes.Equal(fe.Bytes(), buf) && isInBounds(&fe) && isInBounds(&fe1)
-	}
-	*/
+	
 	fe.set_bytes(inp) or { panic(err.msg) }
 	inp[inp.len - 1] &= (1 << 7) - 1 // mask the most significant bit
 
