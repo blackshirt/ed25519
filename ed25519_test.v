@@ -1,9 +1,13 @@
 module ed25519
 
-import encoding.hex
-import log
 import os
+import sync.pool
 import crypto.hmac
+import encoding.hex
+
+const (
+	contents = os.read_lines('testdata/sign.input') or { panic(err.msg) } //[]string
+)
 
 /*
 struct ZeroReader {}
@@ -15,6 +19,7 @@ fn (z ZeroReader) read(mut buf []byte) ?int {
 	return buf.len
 }
 */
+
 fn test_sign_verify() ? {
 	// mut zero := ZeroReader{}
 	public, private := generate_key() ?
@@ -23,19 +28,17 @@ fn test_sign_verify() ? {
 	sig := sign(private, message) ?
 	res := verify(public, message, sig) or { false }
 	assert res == true
-	
 
 	wrongmessage := 'wrong message'.bytes()
 	res2 := verify(public, wrongmessage, sig) ?
 	assert res2 == false
-	
 }
 
 fn test_equal() ? {
 	public, private := generate_key() ?
 
 	assert public.equal(public) == true
-	
+
 	// This is not AVAILABLE
 	/*
 	if !public.Equal(crypto.Signer(private).Public()) {
@@ -65,19 +68,107 @@ fn test_malleability() ? {
 	// verify should fail on provided bytes
 	res := verify(publickey, msg, sig) or { false }
 	assert res == false
-
-	
 }
 
-fn test_sign_input_from_djb_ed25519_crypto_sign_input() ? {
-	contents := os.read_lines('testdata/sign.input') or { panic(err.msg) } //[]string
-	mut lg := log.Log{}
-	for i, item in contents {
+fn works_check_on_sign_input_string(item string) bool {
+	// this is core part of the tests sign input
+	parts := item.split(':') // []string
+
+	if parts.len != 5 {
+		return false
+	}
+	// assert parts.len == 5
+	privbytes := hex.decode(parts[0]) or { panic(err.msg) }
+	pubkey := hex.decode(parts[1]) or { panic(err.msg) }
+	msg := hex.decode(parts[2]) or { panic(err.msg) }
+	mut sig := hex.decode(parts[3]) or { panic(err.msg) }
+
+	if pubkey.len != public_key_size {
+		return false
+	}
+	// assert pubkey.len == public_key_size
+
+	sig = sig[..signature_size]
+	mut priv := []byte{len: private_key_size, cap: private_key_size}
+	copy(priv[..], privbytes)
+	copy(priv[32..], pubkey)
+
+	sig2 := sign(priv[..], msg) or { panic(err.msg) }
+	// assert hmac.equal(sig, sig2[..])
+	if !hmac.equal(sig, sig2[..]) {
+		return false
+	}
+
+	res := verify(pubkey, msg, sig2) or { panic(err.msg) }
+	// assert res == true
+	if !res {
+		return false
+	}
+
+	priv2 := new_key_from_seed(priv[..32])
+	// assert hmac.equal(priv[..], priv2)
+	if !hmac.equal(priv[..], priv2) {
+		return false
+	}
+
+	pubkey2 := priv2.public_key()
+	// assert hmac.equal(pubkey, pubkey2)
+	if !hmac.equal(pubkey, pubkey2) {
+		return false
+	}
+
+	seed2 := priv2.seed()
+	// assert hmac.equal(priv[0..32], seed2) == true
+	if !hmac.equal(priv[0..32], seed2) {
+		return false
+	}
+
+	return true
+}
+
+fn worker_for_string_content(p &pool.PoolProcessor, idx int, worker_id int) &SignResult {
+	item := p.get_item<string>(idx)
+	// println('worker_s worker_id: $worker_id | idx: $idx ')
+	res := works_check_on_sign_input_string(item)
+	mut sr := &SignResult{
+		item: item
+		result: res
+	}
+	return sr
+}
+
+struct SignResult {
+mut:
+	item   string
+	result bool
+}
+
+// This test read a lot of entries in `testdata/sign.input`
+// so, maybe need a long time to finish.
+// be quiet and patient
+fn test_input_from_djb_ed25519_crypto_sign_input_with_syncpool() ? {
+	// contents := os.read_lines('testdata/sign.input') or { panic(err.msg) } //[]string
+	mut pool_s := pool.new_pool_processor(
+		callback: worker_for_string_content
+		maxjobs: 4
+	)
+	pool_s.work_on_items<string>(ed25519.contents)
+	for i, x in pool_s.get_results<SignResult>() {
+		// println("i: $i = $x.result")
+		assert x.result == true
+	}
+}
+
+// same as above, but without sync.pool
+fn test_input_from_djb_ed25519_crypto_sign_input_without_syncpool() ? {
+	// contents := os.read_lines('testdata/sign.input') or { panic(err.msg) } //[]string
+	for i, item in ed25519.contents {
 		parts := item.split(':') // []string
 		// println(parts)
+		/*
 		if parts.len != 5 {
 			lg.fatal('not contains len 5')
-		}
+		}*/
 		assert parts.len == 5
 		privbytes := hex.decode(parts[0]) ?
 		pubkey := hex.decode(parts[1]) ?
@@ -92,24 +183,17 @@ fn test_sign_input_from_djb_ed25519_crypto_sign_input() ? {
 
 		sig2 := sign(priv[..], msg) ?
 		assert hmac.equal(sig, sig2[..])
-		
 
 		res := verify(pubkey, msg, sig2) ?
 		assert res == true
-		
 
 		priv2 := new_key_from_seed(priv[..32])
 		assert hmac.equal(priv[..], priv2)
-		
+
 		pubkey2 := priv2.public_key()
 		assert hmac.equal(pubkey, pubkey2)
-		
+
 		seed2 := priv2.seed()
 		assert hmac.equal(priv[0..32], seed2) == true
-
-		/*
-		if seed := priv2.Seed(); !bytes.Equal(priv[:32], seed) {
-			t.Errorf("recreating key pair gave different seed on line %d: %x vs %x", lineNo, priv[:32], seed)
-		}*/
 	}
 }

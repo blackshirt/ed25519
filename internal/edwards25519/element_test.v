@@ -119,7 +119,7 @@ struct SqrtRatioTest {
 
 fn test_sqrt_ratio() ? {
 	// From draft-irtf-cfrg-ristretto255-decaf448-00, Appendix A.4.
-	
+
 	tests := [
 		// If u is 0, the function is defined to return (0, TRUE), even if v
 		// is zero. Note that where used in this package, the denominator v
@@ -341,7 +341,7 @@ fn test_bytes_big_equivalence() ? {
 	el := Element{}
 	mut fe := el.generate_element()
 	mut fe1 := el.generate_element()
-	
+
 	fe.set_bytes(inp) or { panic(err.msg) }
 	inp[inp.len - 1] &= (1 << 7) - 1 // mask the most significant bit
 

@@ -7,9 +7,8 @@ import math.big
 
 fn test_scalar_equal() {
 	assert sc_one.equal(sc_minus_one) != 1
-	
+
 	assert sc_minus_one.equal(sc_minus_one) != 0
-	
 }
 
 fn test_scalar_non_adjacent_form() {

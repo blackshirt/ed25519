@@ -87,7 +87,7 @@ fn fn_cofactor(mut data []byte) bool {
 	if p8.equal(pp) != 1 {
 		return false
 	}
-	
+
 	// 8 * p == 8 * (loworder + p)
 	pp.add(p, loworder)
 	pp.mult_by_cofactor(pp)

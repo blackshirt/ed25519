@@ -160,7 +160,7 @@ pub fn (mut s Scalar) set_bytes_with_clamping(x []byte) ?Scalar {
 	if x.len != 32 {
 		return error('edwards25519: invalid set_bytes_with_clamping input length')
 	}
-	
+
 	mut wide_bytes := []byte{len: 64, cap: 64}
 	copy(wide_bytes, x)
 	// for i, item in x {
