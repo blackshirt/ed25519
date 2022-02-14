@@ -2,7 +2,7 @@ module edwards25519
 
 import encoding.hex
 import crypto.rand as crand
-import crypto.hmac
+import crypto.internal.subtle
 import math.big
 
 fn test_scalar_equal() {
@@ -77,7 +77,7 @@ fn test_scalar_set_canonical_bytes() ? {
 		buf[buf.len - 1] &= (1 << 4) - 1
 		sc = sc.set_canonical_bytes(buf) or { panic(err.msg) }
 
-		assert hmac.equal(buf[..], sc.bytes()) && is_reduced(sc)
+		assert subtle.constant_time_compare(buf[..], sc.bytes()) == 1 && is_reduced(sc)
 	}
 }
 

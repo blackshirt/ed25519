@@ -2,13 +2,17 @@ module ed25519
 
 import crypto.rand
 import crypto.sha512
-import crypto.hmac
-import github.ed25519.internal.edwards25519
+import crypto.internal.subtle 
+import internal.edwards25519
 
 pub const (
+	// public_key_size is the sizeof public keys in bytes
 	public_key_size  = 32
+	// private_key_size is the sizeof private keys in bytes
 	private_key_size = 64
+	// signature_size is the size of signatures generated and verified by this modules, in bytes.
 	signature_size   = 64
+	// seed_size is the size of private key seeds in bytes
 	seed_size        = 32
 )
 
@@ -17,7 +21,7 @@ pub type PublicKey = []byte
 
 // `equal` reports whether p and x have the same value.
 pub fn (p PublicKey) equal(x []byte) bool {
-	return hmac.equal(p, PublicKey(x))
+	return subtle.constant_time_compare(p, PublicKey(x)) == 1
 }
 
 // `PrivateKey` is Ed25519 private keys
@@ -41,7 +45,7 @@ pub fn (priv PrivateKey) public_key() []byte {
 
 // currentyly x not `crypto.PrivateKey`
 pub fn (priv PrivateKey) equal(x []byte) bool {
-	return hmac.equal(priv, PrivateKey(x))
+	return subtle.constant_time_compare(priv, PrivateKey(x)) == 1
 }
 
 // `sign` signs the given message with priv.
@@ -135,7 +139,7 @@ pub fn verify(publickey PublicKey, message []byte, sig []byte) ?bool {
 	mut rr := edwards25519.Point{}
 	rr.vartime_double_scalar_base_mult(k, minus_a, ss)
 
-	return hmac.equal(sig[..32], rr.bytes())
+	return subtle.constant_time_compare(sig[..32], rr.bytes()) == 1 
 }
 
 // `generate_key` generates a public/private key pair entropy using `crypto.rand`.

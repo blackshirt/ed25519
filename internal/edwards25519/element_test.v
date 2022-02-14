@@ -4,7 +4,7 @@ import rand
 import math.bits
 import math.big
 import encoding.hex
-import crypto.hmac // for equal([]byte, []byte)
+import crypto.internal.subtle // for equal([]byte, []byte)
 import crypto.rand as crand // for rand.read(size)
 
 const (
@@ -165,7 +165,7 @@ fn test_set_bytes_normal() ? {
 		random_inp[random_inp.len - 1] &= (1 << 7) - 1
 		// assert f1(random_inp, el) == true
 
-		assert hmac.equal(random_inp, el.bytes())
+		assert subtle.constant_time_compare(random_inp, el.bytes()) == 1
 		assert is_in_bounds(el) == true
 	}
 }
@@ -206,7 +206,7 @@ fn test_set_bytes_from_dalek_test_vectors() ? {
 		mut el := Element{}
 		mut fe := el.set_bytes(tt.b) ?
 
-		assert hmac.equal(b, tt.b)
+		assert subtle.constant_time_compare(b, tt.b) == 1
 		assert fe.equal(tt.fe) == 1
 	}
 }
@@ -355,7 +355,7 @@ fn test_bytes_big_equivalence() ? {
 	mut fedbig_bytes, _ := fedtobig.bytes()
 	copy(buf, fedbig_bytes) // does not need to do swap_endianness
 
-	assert hmac.equal(fe.bytes(), buf) && is_in_bounds(fe) && is_in_bounds(fe1)
+	assert subtle.constant_time_compare(fe.bytes(), buf) == 1 && is_in_bounds(fe) && is_in_bounds(fe1)
 	// assert big_equivalence(inp, fe, fe1) == true
 }
 

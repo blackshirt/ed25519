@@ -2,7 +2,7 @@ module ed25519
 
 import os
 import sync.pool
-import crypto.hmac
+import crypto.internal.subtle
 import encoding.hex
 
 const (
@@ -94,8 +94,8 @@ fn works_check_on_sign_input_string(item string) bool {
 	copy(priv[32..], pubkey)
 
 	sig2 := sign(priv[..], msg) or { panic(err.msg) }
-	// assert hmac.equal(sig, sig2[..])
-	if !hmac.equal(sig, sig2[..]) {
+	// assert subtle.constant_time_compare(sig, sig2[..])
+	if subtle.constant_time_compare(sig, sig2[..]) != 1{
 		return false
 	}
 
@@ -106,20 +106,20 @@ fn works_check_on_sign_input_string(item string) bool {
 	}
 
 	priv2 := new_key_from_seed(priv[..32])
-	// assert hmac.equal(priv[..], priv2)
-	if !hmac.equal(priv[..], priv2) {
+	// assert subtle.constant_time_compare(priv[..], priv2)
+	if subtle.constant_time_compare(priv[..], priv2) != 1{
 		return false
 	}
 
 	pubkey2 := priv2.public_key()
-	// assert hmac.equal(pubkey, pubkey2)
-	if !hmac.equal(pubkey, pubkey2) {
+	// assert subtle.constant_time_compare(pubkey, pubkey2)
+	if subtle.constant_time_compare(pubkey, pubkey2) != 1 {
 		return false
 	}
 
 	seed2 := priv2.seed()
-	// assert hmac.equal(priv[0..32], seed2) == true
-	if !hmac.equal(priv[0..32], seed2) {
+	// assert subtle.constant_time_compare(priv[0..32], seed2) == true
+	if subtle.constant_time_compare(priv[0..32], seed2) !=1 {
 		return false
 	}
 
@@ -182,18 +182,18 @@ fn test_input_from_djb_ed25519_crypto_sign_input_without_syncpool() ? {
 		copy(priv[32..], pubkey)
 
 		sig2 := sign(priv[..], msg) ?
-		assert hmac.equal(sig, sig2[..])
+		assert subtle.constant_time_compare(sig, sig2[..]) == 1
 
 		res := verify(pubkey, msg, sig2) ?
 		assert res == true
 
 		priv2 := new_key_from_seed(priv[..32])
-		assert hmac.equal(priv[..], priv2)
+		assert subtle.constant_time_compare(priv[..], priv2) == 1
 
 		pubkey2 := priv2.public_key()
-		assert hmac.equal(pubkey, pubkey2)
+		assert subtle.constant_time_compare(pubkey, pubkey2) == 1
 
 		seed2 := priv2.seed()
-		assert hmac.equal(priv[0..32], seed2) == true
+		assert subtle.constant_time_compare(priv[0..32], seed2) == 1
 	}
 }
