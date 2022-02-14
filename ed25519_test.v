@@ -23,29 +23,20 @@ fn test_sign_verify() ? {
 	sig := sign(private, message) ?
 	res := verify(public, message, sig) or { false }
 	assert res == true
-	/*
-	if !verify(public, message, sig) {
-		t.Errorf("valid signature rejected")
-	}*/
+	
 
 	wrongmessage := 'wrong message'.bytes()
 	res2 := verify(public, wrongmessage, sig) ?
 	assert res2 == false
-	/*
-	if verify(public, wrongMessage, sig) {
-		t.Errorf("signature of different message accepted")
-	}*/
+	
 }
 
 fn test_equal() ? {
 	public, private := generate_key() ?
 
 	assert public.equal(public) == true
-	/*
-	if !public.Equal(public) {
-		t.Errorf("public key is not equal to itself: %q", public)
-	}*/
-	// THis is not AVAILABLE
+	
+	// This is not AVAILABLE
 	/*
 	if !public.Equal(crypto.Signer(private).Public()) {
 		t.Errorf("private.Public() is not Equal to public: %q", public)
@@ -75,10 +66,7 @@ fn test_malleability() ? {
 	res := verify(publickey, msg, sig) or { false }
 	assert res == false
 
-	/*
-	if Verify(publicKey, msg, sig) {
-		t.Fatal("non-canonical signature accepted")
-	}*/
+	
 }
 
 fn test_sign_input_from_djb_ed25519_crypto_sign_input() ? {
@@ -104,31 +92,20 @@ fn test_sign_input_from_djb_ed25519_crypto_sign_input() ? {
 
 		sig2 := sign(priv[..], msg) ?
 		assert hmac.equal(sig, sig2[..])
-		/*
-		if !bytes.Equal(sig, sig2[:]) {
-			t.Errorf("different signature result on line %d: %x vs %x", lineNo, sig, sig2)
-		}*/
+		
 
 		res := verify(pubkey, msg, sig2) ?
 		assert res == true
-		/*
-		if !Verify(pubKey, msg, sig2) {
-			t.Errorf("signature failed to verify on line %d", lineNo)
-		}*/
+		
 
 		priv2 := new_key_from_seed(priv[..32])
 		assert hmac.equal(priv[..], priv2)
-		/*
-		if !bytes.Equal(priv[:], priv2) {
-			t.Errorf("recreating key pair gave different private key on line %d: %x vs %x", lineNo, priv[:], priv2)
-		}*/
-
+		
 		pubkey2 := priv2.public_key()
 		assert hmac.equal(pubkey, pubkey2)
-		/*
-		if pubKey2 := priv2.Public().(PublicKey); !bytes.Equal(pubKey, pubKey2) {
-			t.Errorf("recreating key pair gave different public key on line %d: %x vs %x", lineNo, pubKey, pubKey2)
-		}*/
+		
+		seed2 := priv2.seed()
+		assert hmac.equal(priv[0..32], seed2) == true
 
 		/*
 		if seed := priv2.Seed(); !bytes.Equal(priv[:32], seed) {

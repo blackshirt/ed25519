@@ -119,12 +119,7 @@ struct SqrtRatioTest {
 
 fn test_sqrt_ratio() ? {
 	// From draft-irtf-cfrg-ristretto255-decaf448-00, Appendix A.4.
-	/*
-	type test struct {
-		u, v      string
-		wasSquare int
-		r         string
-	}*/
+	
 	tests := [
 		// If u is 0, the function is defined to return (0, TRUE), even if v
 		// is zero. Note that where used in this package, the denominator v

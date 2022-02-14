@@ -7,15 +7,9 @@ import math.big
 
 fn test_scalar_equal() {
 	assert sc_one.equal(sc_minus_one) != 1
-	/*
-	if sc_one.Equal(&sc_minus_one) == 1 {
-		t.Errorf("sc_one.Equal(&sc_minus_one) is true")
-	}*/
+	
 	assert sc_minus_one.equal(sc_minus_one) != 0
-	/*
-	if sc_minus_one.Equal(&sc_minus_one) == 0 {
-		t.Errorf("sc_minus_one.Equal(&sc_minus_one) is false")
-	}*/
+	
 }
 
 fn test_scalar_non_adjacent_form() {
@@ -55,19 +49,6 @@ fn addlike_subneg(x Scalar, y Scalar) bool {
 }
 
 fn test_scalar_add_like_subneg() {
-	/*
-	addLikeSubNeg := func(x, y Scalar) bool {
-		// Compute t1 = x - y
-		var t1 Scalar
-		t1.Subtract(&x, &y)
-
-		// Compute t2 = -y + x
-		var t2 Scalar
-		t2.Negate(&y)
-		t2.Add(&t2, &x)
-
-		return t1 == t2 && isReduced(&t1)
-	}*/
 	for i in 0 .. 15 {
 		x := generate_scalar(1000) or { panic(err.msg) }
 		y := generate_scalar(1000) or { panic(err.msg) }
@@ -203,23 +184,6 @@ fn test_scalar_set_bytes_with_clamping() {
 }
 
 fn test_scalar_multiply_distributes_over_add() ? {
-	/*
-	multiplyDistributesOverAdd := func(x, y, z Scalar) bool {
-		// Compute t1 = (x+y)*z
-		var t1 Scalar
-		t1.Add(&x, &y)
-		t1.Multiply(&t1, &z)
-
-		// Compute t2 = x*z + y*z
-		var t2 Scalar
-		var t3 Scalar
-		t2.Multiply(&x, &z)
-		t3.Multiply(&y, &z)
-		t2.Add(&t2, &t3)
-
-		return t1 == t2 && isReduced(&t1) && isReduced(&t3)
-	}*/
-
 	x := generate_scalar(100) ?
 	y := generate_scalar(100) ?
 	z := generate_scalar(100) ?

@@ -70,18 +70,6 @@ fn test_vartime_double_basemult_vs_dalek() {
 }
 
 fn test_scalar_mult_distributes_over_add() {
-	/*
-	scalarMultDistributesOverAdd := func(x, y Scalar) bool {
-		var z Scalar
-		z.Add(&x, &y)
-		var p, q, r, check Point
-		p.ScalarMult(&x, B)
-		q.ScalarMult(&y, B)
-		r.ScalarMult(&z, B)
-		check.Add(&p, &q)
-		checkOnCurve(t, &p, &q, &r, &check)
-		return check.Equal(&r) == 1
-	}*/
 	mut x := generate_scalar(100) or { panic(err.msg) }
 	mut y := generate_scalar(100) or { panic(err.msg) }
 	mut z := Scalar{}

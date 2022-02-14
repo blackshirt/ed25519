@@ -1,6 +1,5 @@
 module edwards25519
 
-// import crypto.hmac
 import encoding.hex
 import crypto.rand as crand
 
@@ -14,7 +13,7 @@ import crypto.rand as crand
 //
 // Disabled curve25519 not available yet, but maybe can use own curve25519
 /*
-fn fgmon(scalar [32]byte) bool {
+fn fn_mon(scalar [32]byte) bool {
                mut s := new_scalar().set_bytes_with_clamping(scalar[..])
                p := (&Point{}).scalar_base_mult(s)
                got := p.bytes_montgomery()
@@ -61,51 +60,34 @@ const (
 	loworder_bytes  = hex.decode(loworder_string) or { panic(err.msg) }
 )
 
-fn fn_cofactor(mut scalar []byte) bool {
-	if scalar.len != 64 {
+fn fn_cofactor(mut data []byte) bool {
+	if data.len != 64 {
 		panic('err.msg')
 	}
-	/*
-	s, _ := NewScalar().SetUniformBytes(scalar[:])
-	p := (&Point{}).ScalarBaseMult(s)
-	p8 := (&Point{}).MultByCofactor(p)
-	checkOnCurve(t, p8)
-	*/
 	mut loworder := Point{}
 	loworder.set_bytes(edwards25519.loworder_bytes) or { panic(err.msg) }
 
 	mut s := new_scalar()
 	mut p := Point{}
 	mut p8 := Point{}
-	s.set_uniform_bytes(scalar) or { panic(err.msg) }
+	s.set_uniform_bytes(data) or { panic(err.msg) }
 	p.scalar_base_mult(mut s)
 	p8.mult_by_cofactor(p)
 
 	assert check_on_curve(p8) == true
 
-	/*
 	// 8 * p == (8 * s) * B
-		s.Multiply(s, &Scalar{[32]byte{8}})
-		pp := (&Point{}).ScalarBaseMult(s)
-		if p8.Equal(pp) != 1 {
-			return false
-		}
-	*/
-	// 8 * p == (8 * s) * B
-	s.multiply(s, Scalar{[32]byte{init: byte(0x08)}})
+	mut sc := Scalar{
+		s: [32]byte{}
+	}
+	sc.s[0] = byte(0x08)
+	s.multiply(s, sc)
 	mut pp := Point{}
 	pp.scalar_base_mult(mut s)
 	if p8.equal(pp) != 1 {
 		return false
 	}
-	/*
-	// 8 * p == 8 * (lowOrder + p)
-		pp.Add(p, lowOrder)
-		pp.MultByCofactor(pp)
-		if p8.Equal(pp) != 1 {
-			return false
-		}
-	*/
+	
 	// 8 * p == 8 * (loworder + p)
 	pp.add(p, loworder)
 	pp.mult_by_cofactor(pp)
@@ -113,14 +95,6 @@ fn fn_cofactor(mut scalar []byte) bool {
 		return false
 	}
 
-	/*
-	// 8 * p == p + p + p + p + p + p + p + p
-		pp.Set(NewIdentityPoint())
-		for i := 0; i < 8; i++ {
-			pp.Add(pp, p)
-		}
-		return p8.Equal(pp) == 1
-	*/
 	// 8 * p == p + p + p + p + p + p + p + p
 	pp.set(new_identity_point())
 	for i := 0; i < 8; i++ {
@@ -131,94 +105,12 @@ fn fn_cofactor(mut scalar []byte) bool {
 
 fn test_mult_by_cofactor() ? {
 	mut loworder := Point{}
+	mut data := crand.read(64) or { panic(err.msg) }
 
-	loworder.set_bytes(edwards25519.loworder_bytes) or { panic(err.msg) }
-
-	mut p := Point{}
-	p.mult_by_cofactor(loworder)
-	assert p.equal(new_identity_point()) == 1
-
-	mut scalar := crand.read(64) or { panic(err.msg) }
-
-	/*
-	s, _ := NewScalar().SetUniformBytes(scalar[:])
-	p := (&Point{}).ScalarBaseMult(s)
-	p8 := (&Point{}).MultByCofactor(p)
-	checkOnCurve(t, p8)
-	*/
-
-	mut s := new_scalar()
-	// mut p1 := Point{}
-	mut p8 := Point{}
-	s.set_uniform_bytes(scalar) or { panic(err.msg) }
-	p.scalar_base_mult(mut s)
-	p8.mult_by_cofactor(p)
-
-	assert check_on_curve(p8) == true
-
-	/*
-	// 8 * p == (8 * s) * B
-		s.Multiply(s, &Scalar{[32]byte{8}})
-		pp := (&Point{}).ScalarBaseMult(s)
-		if p8.Equal(pp) != 1 {
-			return false
-		}
-	*/
-	// 8 * p == (8 * s) * B
-	mut sc := Scalar{
-		s: [32]byte{}
-	}
-	sc.s[0] = byte(0x08)
-	s.multiply(s, sc)
-	mut pp := Point{}
-	pp.scalar_base_mult(mut s)
-	/*
-	if p8.equal(pp) != 1 {
-		return false
-	}*/
-	assert p8.equal(pp) == 1
-	/*
-	// 8 * p == 8 * (lowOrder + p)
-		pp.Add(p, lowOrder)
-		pp.MultByCofactor(pp)
-		if p8.Equal(pp) != 1 {
-			return false
-		}
-	*/
-	// 8 * p == 8 * (loworder + p)
-	pp.add(p, loworder)
-	pp.mult_by_cofactor(pp)
-	/*
-	if p8.equal(pp) != 1 {
-		return false
-	}*/
-	assert p8.equal(pp) == 1
-	/*
-	// 8 * p == p + p + p + p + p + p + p + p
-		pp.Set(NewIdentityPoint())
-		for i := 0; i < 8; i++ {
-			pp.Add(pp, p)
-		}
-		return p8.Equal(pp) == 1
-	*/
-	// 8 * p == p + p + p + p + p + p + p + p
-	pp.set(new_identity_point())
-	for i := 0; i < 8; i++ {
-		pp.add(pp, p)
-	}
-	assert p8.equal(pp) == 1
-	// assert fn_cofactor(mut data) == true
+	assert fn_cofactor(mut data) == true
 }
 
 fn invert_works(mut xinv Scalar, x NotZeroScalar) bool {
-	/*
-	invert_works := func(xInv Scalar, x notZeroScalar) bool {
-		xInv.Invert((*Scalar)(&x))
-		var check Scalar
-		check.Multiply((*Scalar)(&x), &xInv)
-		return check == scOne && isReduced(&xInv)
-	}
-	*/
 	xinv.invert(Scalar{ s: x.s })
 	mut check := Scalar{}
 	check.multiply(Scalar{ s: x.s }, xinv)
