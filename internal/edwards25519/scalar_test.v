@@ -71,9 +71,7 @@ fn test_scalar_generate() ? {
 fn test_scalar_set_canonical_bytes() ? {
 	for i in 0 .. 10 {
 		mut buf := crand.read(32) or { panic(err.msg) }
-
 		mut sc := generate_scalar(1000) or { panic(err.msg) }
-
 		buf[buf.len - 1] &= (1 << 4) - 1
 		sc = sc.set_canonical_bytes(buf) or { panic(err.msg) }
 
@@ -81,13 +79,12 @@ fn test_scalar_set_canonical_bytes() ? {
 	}
 }
 
-fn test_set_bytes_1() ? {
+fn test_scalar_set_canonical_bytes_round_trip() ? {
 	for i in 0 .. 10 {
 		mut sc1 := generate_scalar(2) ?
-
 		mut sc2 := generate_scalar(6) ?
-
 		sc2.set_canonical_bytes(sc1.bytes()) or { panic(err.msg) }
+
 		assert sc1 == sc2
 	}
 }
@@ -98,7 +95,7 @@ const (
 	}
 )
 
-fn test_set_bytes_2() ? {
+fn test_scalar_set_canonical_bytes_on_noncanonical_value() ? {
 	mut b := sc_minus_one.s
 	b[31] += 1
 

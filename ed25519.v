@@ -2,8 +2,8 @@ module ed25519
 
 import crypto.rand
 import crypto.sha512
-import crypto.internal.subtle 
-import internal.edwards25519
+import crypto.internal.subtle
+import github.ed25519.internal.edwards25519
 
 pub const (
 	// public_key_size is the sizeof public keys in bytes
@@ -139,7 +139,7 @@ pub fn verify(publickey PublicKey, message []byte, sig []byte) ?bool {
 	mut rr := edwards25519.Point{}
 	rr.vartime_double_scalar_base_mult(k, minus_a, ss)
 
-	return subtle.constant_time_compare(sig[..32], rr.bytes()) == 1 
+	return subtle.constant_time_compare(sig[..32], rr.bytes()) == 1
 }
 
 // `generate_key` generates a public/private key pair entropy using `crypto.rand`.
@@ -153,7 +153,7 @@ pub fn generate_key() ?(PublicKey, PrivateKey) {
 	return publickey, privatekey
 }
 
-// `new_key_from_seed` calculates a private key from a seed. private keys of RFC8032
+// `new_key_from_seed` calculates a private key from a seed. private keys of RFC 8032
 // correspond to seeds in this module
 pub fn new_key_from_seed(seed []byte) PrivateKey {
 	// Outline the function body so that the returned key can be stack-allocated.

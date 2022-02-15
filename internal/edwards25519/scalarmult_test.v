@@ -43,7 +43,7 @@ fn test_scalar_mult_vs_dalek() {
 	assert check_on_curve(p) == true
 }
 
-fn test_base_mult_vs_dalek() {
+fn test_scalar_base_mult_vs_dalek() {
 	mut p := Point{}
 	mut dsc := edwards25519.dalek_scalar
 	p.scalar_base_mult(mut dsc)

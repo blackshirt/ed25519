@@ -95,7 +95,7 @@ fn works_check_on_sign_input_string(item string) bool {
 
 	sig2 := sign(priv[..], msg) or { panic(err.msg) }
 	// assert subtle.constant_time_compare(sig, sig2[..])
-	if subtle.constant_time_compare(sig, sig2[..]) != 1{
+	if subtle.constant_time_compare(sig, sig2[..]) != 1 {
 		return false
 	}
 
@@ -107,7 +107,7 @@ fn works_check_on_sign_input_string(item string) bool {
 
 	priv2 := new_key_from_seed(priv[..32])
 	// assert subtle.constant_time_compare(priv[..], priv2)
-	if subtle.constant_time_compare(priv[..], priv2) != 1{
+	if subtle.constant_time_compare(priv[..], priv2) != 1 {
 		return false
 	}
 
@@ -119,7 +119,7 @@ fn works_check_on_sign_input_string(item string) bool {
 
 	seed2 := priv2.seed()
 	// assert subtle.constant_time_compare(priv[0..32], seed2) == true
-	if subtle.constant_time_compare(priv[0..32], seed2) !=1 {
+	if subtle.constant_time_compare(priv[0..32], seed2) != 1 {
 		return false
 	}
 
@@ -160,6 +160,7 @@ fn test_input_from_djb_ed25519_crypto_sign_input_with_syncpool() ? {
 }
 
 // same as above, but without sync.pool
+/*
 fn test_input_from_djb_ed25519_crypto_sign_input_without_syncpool() ? {
 	// contents := os.read_lines('testdata/sign.input') or { panic(err.msg) } //[]string
 	for i, item in ed25519.contents {
@@ -196,4 +197,4 @@ fn test_input_from_djb_ed25519_crypto_sign_input_without_syncpool() ? {
 		seed2 := priv2.seed()
 		assert subtle.constant_time_compare(priv[0..32], seed2) == 1
 	}
-}
+}*/

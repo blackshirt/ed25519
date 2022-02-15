@@ -355,7 +355,8 @@ fn test_bytes_big_equivalence() ? {
 	mut fedbig_bytes, _ := fedtobig.bytes()
 	copy(buf, fedbig_bytes) // does not need to do swap_endianness
 
-	assert subtle.constant_time_compare(fe.bytes(), buf) == 1 && is_in_bounds(fe) && is_in_bounds(fe1)
+	assert subtle.constant_time_compare(fe.bytes(), buf) == 1 && is_in_bounds(fe)
+		&& is_in_bounds(fe1)
 	// assert big_equivalence(inp, fe, fe1) == true
 }
 
